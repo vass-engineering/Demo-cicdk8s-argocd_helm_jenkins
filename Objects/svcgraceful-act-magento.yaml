@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2020-04-19T15:51:55Z"
+  labels:
+    app: graceful-act-magento
+    chart: magento-12.0.6
+    heritage: Helm
+    release: graceful-act
+  name: graceful-act-magento
+  namespace: hola2
+  resourceVersion: "1828703"
+  selfLink: /api/v1/namespaces/hola2/services/graceful-act-magento
+  uid: 2edde913-d1cb-4420-bac3-4c008aa8a44b
+spec:
+  clusterIP: 10.233.40.18
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: http
+    nodePort: 30001
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: graceful-act-magento
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
