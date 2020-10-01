@@ -5,6 +5,7 @@ DEMO CICD Kubernetes + Helm3 + Argo:
 ## Introduction:
 In this topic we will see a little demo about how to integrate some technologies as Argo and Helm to help us to improve the control in our K8S through a simple CI CD workflow.
 
+
 ## Background:
 
 Due the benefices and popularity of Micro-services infrastructures, the number of this kind of infrastructures is growing fast, demanding full control,  scalability, and a faster continues integration & continuous deployment method. This kind of demands, required new technologies and new working methods. In this topic, we will focus in a little demo about how some technologies will help us to speed up our Deployment Life Cycle.
