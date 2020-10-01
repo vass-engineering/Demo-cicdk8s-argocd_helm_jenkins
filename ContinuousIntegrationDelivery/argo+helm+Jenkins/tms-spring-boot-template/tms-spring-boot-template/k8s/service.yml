@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: tms-spring-boot-template2
+  name: tms-spring-boot-template2
+  namespace: tms-dev
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: tms-spring-boot-template2
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

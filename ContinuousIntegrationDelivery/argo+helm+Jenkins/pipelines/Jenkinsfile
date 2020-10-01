@@ -1,0 +1,189 @@
+def NAMESPACE_EXISTS = 'UNKNOWN'
+
+pipeline {
+
+  environment {
+    registry = "harbor.192.168.66.80.xip.io"
+    registryCredential = 'harborid'
+    serverKubernetes = 'https://192.168.66.2:6443'
+    credentialKubernetes = 'jenkinskubernetes'
+    IMAGETAG="${env.BUILD_NUMBER}"+ "-${params.NAME_APP}" + "-${params.APP_BRANCH}"
+    }
+
+
+
+  parameters {
+    string(name: 'APP_REPO', defaultValue: 'https://github.com/felix-centenera/tmslab-githubprivate.git')
+    string(name: 'APP_BRANCH', defaultValue: 'master')
+    string(name: 'VALUES_APP', defaultValue: 'valuesdev.yaml')
+    string(name: 'NAMESPACE', defaultValue: 'tms-cicd-dev')
+    string(name: 'REGISTRY', defaultValue: 'harbor.192.168.66.80.xip.io', description: 'Registry image')
+    string(name: 'REPOSITORY', defaultValue: 'library/tms-lab', description: 'Repository image')
+    string(name: 'NAME_APP', defaultValue: 'java')
+    choice(
+        name: 'OPTIONDEPLOY',
+        choices: "Deploy\nBuildAndDeploy",
+        description: 'Deploy will allow you to select an imagen already built, BuildAndDeploy will build and deploy this image' )
+  }
+
+    agent any
+
+    stages {
+
+        // X) Checkout Source Code and calculate Version Numbers and Tags
+        //    stage('Checkout Source') {
+        //		steps {
+        //			dir('app') {
+        //              		  git branch: '2.3', url: "${params.URL_APP}"
+        //            		}
+        //          	}
+        //        }
+
+
+        // BUILD.1: Compile and test the code.
+        stage('Compile and test the code') {
+        when {
+          		expression { OPTIONDEPLOY == 'BuildAndDeploy' }
+             }
+          steps {
+             		echo 'Starting to compile and test the code'
+                script {
+                       sh """
+                        mvn clean package -f tms-spring-boot-template
+                       """
+               	}
+          }
+        }
+
+        // BUILD.2: Build images
+        stage('Building image') {
+        when {
+          		expression { OPTIONDEPLOY == 'BuildAndDeploy' }
+             }
+          steps {
+            		echo 'Starting to build docker image'
+            		script {
+                  		 dockerImage  = docker.build("${params.REGISTRY}/" + "${params.REPOSITORY}" + ":$BUILD_NUMBER" + "-${params.NAME_APP}" + "-${params.APP_BRANCH}", "-f tms-spring-boot-template/Dockerfile .")
+                }
+          }
+        }
+
+
+        // BUILD.3: Push images to registry
+        stage('Push Image to registry') {
+        when {
+          		expression { OPTIONDEPLOY == 'BuildAndDeploy' }
+             }
+          steps{
+               script {
+                      docker.withRegistry( 'https://harbor.192.168.66.80.xip.io', registryCredential ) {
+                      dockerImage.push()
+                      }
+               }
+          }
+        }
+
+
+
+        // DEPLOY.1: Obtain images from registry.
+        stage('Obtain images from registry') {
+        when {
+          		expression { OPTIONDEPLOY == 'Deploy' }
+             }
+          steps {
+                echo 'Select an image to deploy'
+                script {
+                       tags = sh(script: "curl -u  xxxx:xxxx --insecure -s  https://harbor.192.168.66.80.xip.io/api/v2.0/projects/library/repositories/tms-lab/artifacts | jq '.[].tags[].name' ", returnStdout: true).trim()
+                }
+          }
+        }
+
+        // DEPLOY.2: Select images form Harbor.
+        stage('Select images form Harbor') {
+        when {
+          		expression { OPTIONDEPLOY == 'Deploy' }
+             }
+          steps {
+                echo 'Select an image to deploy'
+                script {
+                    def tag_response = input message: 'Select the image tag from the image that you want to deploy',
+                    parameters: [choice(choices: "${tags}",  description: 'Select the image tag from the image that you want to deploy', name: '')]
+                    env.tag_response = tag_response
+                    IMAGETAG=env.tag_response
+                  //  env.IMAGETAG = env.tag_response
+                }
+
+                // withEnv(["IMAGETAG=${env.tag_response}"]) { // it can override any env variable
+                //  echo "IMAGETAG = ${IMAGETAG}" //
+                //      }
+          }
+        }
+
+
+        // DEPLOYMENT
+
+        // DEPLOY.4: SetImage in VALUES_APP using  SSH GIT KEY
+        stage('SetImage in VALUES_APP') {
+          steps {
+                echo 'SetImage in DEV'
+                withCredentials([sshUserPrivateKey(credentialsId: 'GITHubVassSSH', keyFileVariable: 'SSH_KEY')]) {
+                sh """
+                    git remote set-url origin git@github.com:felix-centenera/tmslab-githubprivate.git
+                    git checkout ${params.APP_BRANCH}
+                    sed  -i  "s/tag: .*/tag: ${IMAGETAG}/g" helm_templates/helm3-java/valuesdev.yaml
+                    git add helm_templates/helm3-java/valuesdev.yaml
+                    git commit -m "Deployment  ${env.BUILD_NUMBER}"
+                    git push origin master
+                    """
+                }
+          }
+        }
+
+
+        // DEPLOY.5: Check if namespace exists
+        stage('Check if namespace exists') {
+  	      steps {
+        	  	   script {
+				         withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
+        		     NAMESPACE_EXISTS = sh (returnStdout: true, script: "kubectl get namespaces | grep -w ${params.NAMESPACE} || true")
+                 }
+                 }
+          }
+        }
+
+        // DEPLOY.6: Create namespace if not exists
+        stage ('Create namespace') {
+          when {
+        	     expression { NAMESPACE_EXISTS == '' }
+          }
+          steps {
+			      script {
+              withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
+              sh "kubectl create namespace ${params.NAMESPACE}"
+              }
+            }
+         }
+        }
+
+        // DEPLOY.7: Register the  application Argo
+        stage('Register the  application Argo') {
+          steps {
+            script {
+            withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
+            sh """
+               argocd app create "${params.NAME_APP}" --repo  ${params.APP_REPO} --revision  ${params.APP_BRANCH}   --path helm_templates/helm3-java --dest-server https://kubernetes.default.svc --dest-namespace ${params.NAMESPACE} --project default --values ${params.VALUES_APP} --sync-policy automated --auto-prune  --self-heal
+               """
+               }
+            }
+         }
+        }
+
+    }
+ post {
+        always {
+            cleanWs()
+        }
+    }
+}
+
+// END OF PIPELINE

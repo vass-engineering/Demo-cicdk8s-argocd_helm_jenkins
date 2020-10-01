@@ -1,0 +1,16 @@
+{{ if .Values.appdynamics.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "java.fullname" . }}-appdycmap
+  labels:
+    {{- include "java.labels" . | nindent 4 }}
+data:
+  appdynamics.agent.applicationName:  {{ .Values.appdynamics.applicationName }}
+  appdynamics.agent.tierName: {{ .Values.appdynamics.tierName }}
+  appdynamics.agent.accountAccessKey: {{ .Values.appdynamics.accountAccessKey }}
+  appdynamics.agent.accountName: {{ .Values.appdynamics.accountName }}
+  appdynamics.controller.hostName: {{ .Values.appdynamics.hostName }}
+  appdynamics.controller.port: "443"
+  appdynamics.controller.ssl.enabled: "true"
+{{ end }}

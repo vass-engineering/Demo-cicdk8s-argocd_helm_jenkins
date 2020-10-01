@@ -1,0 +1,175 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "java.fullname" . }}
+  labels:
+    {{- include "java.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "java.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "java.selectorLabels" . | nindent 8 }}
+    spec:
+      {{ if .Values.appdynamics.enabled }}
+      initContainers:
+      - args:
+        - -ra
+        - /opt/appdynamics/.
+        - /opt/appd/
+        command:
+        - /bin/cp
+        image: harbor.52.209.128.30.nip.io/harborvass/appdynamics-javaagent-docker:v1.3
+        imagePullPolicy: IfNotPresent
+        name: appdynamics-javaagent-docker
+        resources:
+          limits:
+            cpu: 150m
+            memory: 75M
+          requests:
+            cpu: 100m
+            memory: 50M
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /opt/appd
+          name: appdynamics-javaagent-docker
+      {{ end }}
+      {{ if or (.Values.configmaps.enabled) (.Values.appdynamics.enabled) }}
+      volumes:
+      {{ if .Values.appdynamics.enabled }}
+      - emptyDir: {}
+        name: appdynamics-javaagent-docker
+      {{ end }}
+      {{ if .Values.configmaps.enabled }}
+      - configMap:
+          defaultMode: 420
+          name: {{ .Values.configmaps.configmapname }}
+        name: {{ .Values.configmaps.configmapname }}-confimap
+      {{ end }}
+      {{ end }}
+      serviceAccountName: {{ include "java.serviceAccountName" . }}
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+    {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "java.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.envs.springProfileActive }}
+            - name: SPRING_CONFIG_LOCATION
+              value: {{ .Values.envs.springConfigLocation }}
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: {{ .Values.envs.serverServletContextPath }}
+            - name: GC_MAX_METASPACE_SIZE
+              value: {{ .Values.envs.gz_max_metaspace_size | quote }}
+            - name: JAVA_OPTIONS
+              value: {{ .Values.envs.java_options }}
+            {{ if .Values.appdynamics.enabled }}
+            - name: JAVA_TOOL_OPTIONS
+              value: '-Dappdynamics.agent.reuse.nodeName=true -Dappdynamics.jvm.shutdown.mark.node.as.historical=false -javaagent:/opt/appd/javaagent.jar -Duser.timezone=Europe/Madrid {{ .Values.envs.java_options }}'
+            {{ else }}
+            - name: JAVA_TOOL_OPTIONS
+              value: '-Duser.timezone=Europe/Madrid {{ .Values.envs.java_options }}'
+            {{- end }}
+            {{ if .Values.appdynamics.enabled }}
+            - name: APPDYNAMICS_AGENT_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: APPDYNAMICS_CONTROLLER_HOST_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: appdynamics.controller.hostName
+                  name: {{ include "java.fullname" . }}-appdycmap
+            - name: APPDYNAMICS_CONTROLLER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: appdynamics.controller.port
+                  name: {{ include "java.fullname" . }}-appdycmap
+            - name: APPDYNAMICS_CONTROLLER_SSL_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  key: appdynamics.controller.ssl.enabled
+                  name: {{ include "java.fullname" . }}-appdycmap
+            - name: APPDYNAMICS_AGENT_APPLICATION_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: appdynamics.agent.applicationName
+                  name: {{ include "java.fullname" . }}-appdycmap
+            - name: APPDYNAMICS_AGENT_TIER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: appdynamics.agent.tierName
+                  name: {{ include "java.fullname" . }}-appdycmap
+            - name: APPDYNAMICS_AGENT_ACCOUNT_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: appdynamics.agent.accountName
+                  name: {{ include "java.fullname" . }}-appdycmap
+            - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: appdynamics.agent.accountAccessKey
+                  name: {{ include "java.fullname" . }}-appdycmap
+          envFrom:
+          - configMapRef:
+              name: {{ include "java.fullname" . }}-appdycmap
+          {{ end }}
+          {{ if or (.Values.configmaps.enabled) (.Values.appdynamics.enabled) }}
+          volumeMounts:
+          {{ if .Values.appdynamics.enabled }}
+          - mountPath: /opt/appd
+            name: appdynamics-javaagent-docker
+          {{ end }}
+          {{ if .Values.configmaps.enabled }}
+          - mountPath: {{ .Values.configmaps.configmappath }}
+            name: {{ .Values.configmaps.configmapname }}-confimap
+          {{ end }}
+          {{ end }}
+          ports:
+            - name: 8080-tcp
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.healthChecks.contextPathHealthChecks }}
+              port: 8080-tcp
+            initialDelaySeconds: {{ .Values.healthChecks.livenessDelaySeconds }}
+            periodSeconds: 8
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.healthChecks.contextPathHealthChecks }}
+              port: 8080-tcp
+            initialDelaySeconds: {{ .Values.healthChecks.readinessDelaySeconds }}
+            periodSeconds: 3
+            successThreshold: 1
+            timeoutSeconds: 2
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+       {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
