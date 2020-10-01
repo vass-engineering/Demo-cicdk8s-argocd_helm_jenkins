@@ -72,7 +72,8 @@ At the end of both Roads, Argo will take care of our application.
 
 * Enjoy the view console from ArgoCD, how automatically is synchronized or created our application.
 
-![alt text](https://github.com/felix-centenera/tmslab-githubprivate/blob/master/DocsImages/ArgoCD.png)
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/ArgoCD.png)
+
 
 
 ## Day two Operations
