@@ -3,7 +3,7 @@ DEMO CICD Kubernetes + Helm3 + Argo:
 -------------------------
 
 ## Introduction:
-
+In this topic we will see a little demo about how to integrate some technologies as Argo and Helm to help us to improve the control in our K8S through a simple CI CD workflow.
 
 ## Background:
 
@@ -26,7 +26,7 @@ desynchronization.
 
 ## Workflow CICD
 
-![alt text](https://github.com/felix-centenera/tmslab-githubprivate/blob/master/DocsImages/CICDTMS.png)
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/CICDTMS.png)
 
 
 * The CICD is managed from Jenkins, where we will have a pipeline to deploy our application, the pipeline will be a Pipeline script from SCM.
@@ -44,14 +44,14 @@ desynchronization.
       * Build & Deploy: To build a new image from the code and deploy this images.
       * Deploy: Select an image from the registry and deployment.
 
-![alt text](https://github.com/felix-centenera/tmslab-githubprivate/blob/master/DocsImages/PipelineSelectOptions.png)  
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/PipelineSelectOptions.png)  
 
 ### Steps ROAD Deploy:
 
 1) Obtain images from registry: This step, using the API of Harbor, obtain the images allocated in our Harbor registry.
 2) Select images from Harbor: You will select the image that you want to deploy.
 
-![alt text](https://github.com/felix-centenera/tmslab-githubprivate/blob/master/DocsImages/SelectImagefromRegisty.png)  
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/SelectImagefromRegisty.png)  
 
 3) SetImage in VALUES_APP: It will change the parameter tag from the VALUES_APP. It will change tag value in the file, and push the change to Git.
 4) Check if namespace exists: It will check if the namespace exists in our cluster and it will be created in cases is not present. (This is a demo, in production add step where somebody approve the creation)
