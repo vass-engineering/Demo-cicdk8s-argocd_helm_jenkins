@@ -27,7 +27,7 @@ desynchronization.
 
 ## Workflow CICD
 
-![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/CICDTMS.png)
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo_helm_Jenkins/DocsImages/CICDTMS.png)
 
 
 * The CICD is managed from Jenkins, where we will have a pipeline to deploy our application, the pipeline will be a Pipeline script from SCM.
@@ -45,14 +45,14 @@ desynchronization.
       * Build & Deploy: To build a new image from the code and deploy this images.
       * Deploy: Select an image from the registry and deployment.
 
-![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/PipelineSelectOptions.png)  
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo_helm_Jenkins/DocsImages/PipelineSelectOptions.png)  
 
 ### Steps ROAD Deploy:
 
 1) Obtain images from registry: This step, using the API of Harbor, obtain the images allocated in our Harbor registry.
 2) Select images from Harbor: You will select the image that you want to deploy.
 
-![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/SelectImagefromRegisty.png)  
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo_helm_Jenkins/DocsImages/SelectImagefromRegisty.png)  
 
 3) SetImage in VALUES_APP: It will change the parameter tag from the VALUES_APP. It will change tag value in the file, and push the change to Git.
 4) Check if namespace exists: It will check if the namespace exists in our cluster and it will be created in cases is not present. (This is a demo, in production add step where somebody approve the creation)
@@ -73,7 +73,7 @@ At the end of both Roads, Argo will take care of our application.
 
 * Enjoy the view console from ArgoCD, how automatically is synchronized or created our application.
 
-![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo%2Bhelm%2BJenkins/DocsImages/ArgoCD.png)
+![alt text](https://github.com/vass-engineering/DemoSolutions/blob/master/ContinuousIntegrationDelivery/argo_helm_Jenkins/DocsImages/ArgoCD.png)
 
 
 
