@@ -3,7 +3,7 @@ def NAMESPACE_EXISTS = 'UNKNOWN'
 pipeline {
 
   environment {
-    registry = "harbor.192.168.66.80.xip.io"
+    registry = "harbor.52.209.128.30.nip.io"
     registryCredential = 'harborid'
     serverKubernetes = 'https://192.168.66.2:6443'
     credentialKubernetes = 'jenkinskubernetes'
@@ -13,17 +13,17 @@ pipeline {
 
 
   parameters {
-    string(name: 'APP_REPO', defaultValue: 'https://github.com/felix-centenera/tmslab-githubprivate.git')
+    string(name: 'APP_REPO', defaultValue: 'https://github.com/vass-engineering/DemoSolutions.git')
     string(name: 'APP_BRANCH', defaultValue: 'master')
     string(name: 'VALUES_APP', defaultValue: 'valuesdev.yaml')
     string(name: 'NAMESPACE', defaultValue: 'tms-cicd-dev')
-    string(name: 'REGISTRY', defaultValue: 'harbor.192.168.66.80.xip.io', description: 'Registry image')
+    string(name: 'REGISTRY', defaultValue: 'harbor.52.209.128.30.nip.io', description: 'Registry image')
     string(name: 'REPOSITORY', defaultValue: 'library/tms-lab', description: 'Repository image')
-    string(name: 'NAME_APP', defaultValue: 'java')
+    string(name: 'NAME_APP', defaultValue: 'java-demo')
     choice(
         name: 'OPTIONDEPLOY',
         choices: "Deploy\nBuildAndDeploy",
-        description: 'Deploy will allow you to select an imagen already built, BuildAndDeploy will build and deploy this image' )
+        description: 'Deploy will allow you to select an image already built, BuildAndDeploy will build and deploy this image' )
   }
 
     agent any
@@ -76,7 +76,7 @@ pipeline {
              }
           steps{
                script {
-                      docker.withRegistry( 'https://harbor.192.168.66.80.xip.io', registryCredential ) {
+                      docker.withRegistry( 'https://${params.REGISTRY}', registryCredential ) {
                       dockerImage.push()
                       }
                }
@@ -93,7 +93,7 @@ pipeline {
           steps {
                 echo 'Select an image to deploy'
                 script {
-                       tags = sh(script: "curl -u  xxxx:xxxx --insecure -s  https://harbor.192.168.66.80.xip.io/api/v2.0/projects/library/repositories/tms-lab/artifacts | jq '.[].tags[].name' ", returnStdout: true).trim()
+                       tags = sh(script: "curl -u  xxxx:xxxx --insecure -s  https://${params.REGISTRY}/api/v2.0/projects/library/repositories/tms-lab/artifacts | jq '.[].tags[].name' ", returnStdout: true).trim()
                 }
           }
         }
