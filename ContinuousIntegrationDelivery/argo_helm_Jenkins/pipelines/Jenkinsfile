@@ -16,7 +16,7 @@ pipeline {
     string(name: 'APP_REPO', defaultValue: 'https://github.com/vass-engineering/DemoSolutions.git')
     string(name: 'APP_BRANCH', defaultValue: 'master')
     string(name: 'VALUES_APP', defaultValue: 'valuesdev.yaml')
-    string(name: 'NAMESPACE', defaultValue: 'tms-cicd-dev')
+    string(name: 'NAMESPACE', defaultValue: 'tms-cicd-labs-dev')
     string(name: 'REGISTRY', defaultValue: 'harbor.52.209.128.30.nip.io', description: 'Registry image')
     string(name: 'REPOSITORY', defaultValue: 'library/tms-lab', description: 'Repository image')
     string(name: 'NAME_APP', defaultValue: 'java-demo')
@@ -188,4 +188,4 @@ pipeline {
     }
 }
 
-// END OF PIPELINE 
+// END OF PIPELINE
