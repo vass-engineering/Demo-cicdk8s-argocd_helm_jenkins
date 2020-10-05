@@ -6,7 +6,7 @@ pipeline {
     registry = "harbor.52.209.128.30.nip.io"
     registryCredential = 'harborid'
     serverKubernetes = 'https://52B5D98096CE6CC69C293741E709FEC4.sk1.eu-west-1.eks.amazonaws.com'
-    credentialKubernetes = 'Config-eks'
+    credentialKubernetes = 'kubeconfig-eks'
     IMAGETAG="${env.BUILD_NUMBER}"+ "-${params.NAME_APP}" + "-${params.APP_BRANCH}"
     }
 
