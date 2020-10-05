@@ -147,6 +147,7 @@ pipeline {
         stage('Check if namespace exists') {
   	      steps {
         	  	   script {
+                 withAWS(credentials: 'AWSCredentialsJenkins', region: 'eu-west-1')
 				         withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
         		     NAMESPACE_EXISTS = sh (returnStdout: true, script: "kubectl get namespaces | grep -w ${params.NAMESPACE} || true")
                  }
