@@ -2,6 +2,12 @@ def NAMESPACE_EXISTS = 'UNKNOWN'
 
 pipeline {
 
+options {
+timestamps ()
+withAWS(credentials: 'AWSCredentialsJenkins', region: 'eu-west-1')
+withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d98096ce6cc69c293741e709fec4.sk1.eu-west-1.eks.amazonaws.com'])
+}
+
   environment {
     registry = "harbor.52.209.128.30.nip.io"
     registryCredential = 'harborid'
@@ -147,10 +153,9 @@ pipeline {
         stage('Check if namespace exists') {
   	      steps {
         	  	   script {
-                 withAWS(credentials: 'AWSCredentialsJenkins', region: 'eu-west-1')
-				         withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
+                 //withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
         		     NAMESPACE_EXISTS = sh (returnStdout: true, script: "kubectl get namespaces | grep -w ${params.NAMESPACE} || true")
-                 }
+                 //}
                  }
           }
         }
@@ -162,9 +167,9 @@ pipeline {
           }
           steps {
 			      script {
-              withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
+              //withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
               sh "kubectl create namespace ${params.NAMESPACE}"
-              }
+              // }
             }
          }
         }
@@ -173,11 +178,11 @@ pipeline {
         stage('Register the  application Argo') {
           steps {
             script {
-            withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
+            //withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
             sh """
                argocd app create "${params.NAME_APP}" --repo  ${params.APP_REPO} --revision  ${params.APP_BRANCH}   --path ContinuousIntegrationDelivery/argo_helm_Jenkins/helm_templates/helm3-java --dest-server   https://kubernetes.default.svc --dest-namespace ${params.NAMESPACE} --project default --values ${params.VALUES_APP} --sync-policy automated --auto-prune  --self-heal
                """
-               }
+              //}
             }
          }
         }
