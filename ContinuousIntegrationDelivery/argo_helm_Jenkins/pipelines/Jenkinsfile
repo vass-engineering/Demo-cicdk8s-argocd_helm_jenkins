@@ -132,6 +132,7 @@ pipeline {
                 sh """
                     git remote set-url origin git@github.com:vass-engineering/DemoSolutions.git
                     git checkout ${params.APP_BRANCH}
+                    git config --global user.name "felix-centenera"
                     sed  -i  "s/tag: .*/tag: ${IMAGETAG}/g" ContinuousIntegrationDelivery/argo_helm_Jenkins/helm_templates/helm3-java/valuesdev.yaml
                     git add ContinuousIntegrationDelivery/argo_helm_Jenkins/helm_templates/helm3-java/valuesdev.yaml
                     git commit -m "Deployment  ${env.BUILD_NUMBER}"
