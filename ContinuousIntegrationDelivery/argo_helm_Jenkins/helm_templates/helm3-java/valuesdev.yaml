@@ -13,7 +13,7 @@ configmaps:
 image:
   registry: "harbor.192.168.66.80.xip.io"
   repository: "library/tms-lab"
-  tag: 24-java-demo-master
+  tag: 25-java-demo-master
   pullPolicy: Always
 
 
