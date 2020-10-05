@@ -76,7 +76,7 @@ pipeline {
              }
           steps{
                script {
-                      docker.withRegistry( registry, registryCredential ) {
+                      docker.withRegistry( 'https://harbor.52.209.128.30.nip.io', registryCredential ) {
                       dockerImage.push()
                       }
                }
