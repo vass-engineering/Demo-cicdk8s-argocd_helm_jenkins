@@ -11,7 +11,7 @@ configmaps:
   configmappath: /tmp
 
 image:
-  registry: "harbor.192.168.66.80.xip.io"
+  registry: "harbor.52.209.128.30.nip.io"
   repository: "library/tms-lab"
   tag: 32-java-demo-master
   pullPolicy: Always
