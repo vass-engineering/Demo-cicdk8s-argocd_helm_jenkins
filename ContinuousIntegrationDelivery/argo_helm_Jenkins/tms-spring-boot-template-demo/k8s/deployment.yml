@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: tms-spring-boot-template2
+  name: tms-spring-boot-template2
+  namespace: tms-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tms-spring-boot-template2
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: tms-spring-boot-template2
+    spec:
+      tolerations:
+        - key: "spotInstance"
+          operator: "Equal"
+          value: "true"
+          effect: "PreferNoSchedule"
+      affinity:
+          nodeAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                  - weight: 1
+                    preference:
+                        matchExpressions:
+                            - key: lifecycle
+                              operator: In
+                              values:
+                                  - EC2Spot
+              requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                      - matchExpressions:
+                            - key: intent
+                              operator: In
+                              values:
+                                  - apps
+      containers:
+        - image: harbor.52.209.128.30.nip.io/harborvass/tms-spring-boot-template:0.1.0
+          imagePullPolicy: Always
+          name: tasks
+          resources: {}
+          env:
+            - name: "JAVA_OPTS"
+              value: >-
+                -XX:+UseParallelGC
+      imagePullSecrets:
+        - name: harborvass
+status: {}
