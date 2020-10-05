@@ -49,7 +49,7 @@ pipeline {
              		echo 'Starting to compile and test the code'
                 script {
                        sh """
-                        mvn clean package -f ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/tms-spring-boot-template
+                        mvn clean package -f ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template-demo
                        """
                	}
           }
@@ -63,7 +63,7 @@ pipeline {
           steps {
             		echo 'Starting to build docker image'
             		script {
-                  		 dockerImage  = docker.build("${params.REGISTRY}/" + "${params.REPOSITORY}" + ":$BUILD_NUMBER" + "-${params.NAME_APP}" + "-${params.APP_BRANCH}", "-f ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/tms-spring-boot-template/Dockerfile .")
+                  		 dockerImage  = docker.build("${params.REGISTRY}/" + "${params.REPOSITORY}" + ":$BUILD_NUMBER" + "-${params.NAME_APP}" + "-${params.APP_BRANCH}", "-f ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template-demo/Dockerfile .")
                 }
           }
         }
@@ -132,8 +132,8 @@ pipeline {
                 sh """
                     git remote set-url origin git@github.com:vass-engineering/DemoSolutions.git
                     git checkout ${params.APP_BRANCH}
-                    sed  -i  "s/tag: .*/tag: ${IMAGETAG}/g" ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/helm_templates/helm3-java/valuesdev.yaml
-                    git add ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/helm_templates/helm3-java/valuesdev.yaml
+                    sed  -i  "s/tag: .*/tag: ${IMAGETAG}/g" ContinuousIntegrationDelivery/argo_helm_Jenkins/helm_templates/helm3-java/valuesdev.yaml
+                    git add ContinuousIntegrationDelivery/argo_helm_Jenkins/helm_templates/helm3-java/valuesdev.yaml
                     git commit -m "Deployment  ${env.BUILD_NUMBER}"
                     git push origin master
                     """
@@ -173,7 +173,7 @@ pipeline {
             script {
             withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
             sh """
-               argocd app create "${params.NAME_APP}" --repo  ${params.APP_REPO} --revision  ${params.APP_BRANCH}   --path ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/helm_templates/helm3-java --dest-server   https://kubernetes.default.svc --dest-namespace ${params.NAMESPACE} --project default --values ${params.VALUES_APP} --sync-policy automated --auto-prune  --self-heal
+               argocd app create "${params.NAME_APP}" --repo  ${params.APP_REPO} --revision  ${params.APP_BRANCH}   --path ContinuousIntegrationDelivery/argo_helm_Jenkins/helm_templates/helm3-java --dest-server   https://kubernetes.default.svc --dest-namespace ${params.NAMESPACE} --project default --values ${params.VALUES_APP} --sync-policy automated --auto-prune  --self-heal
                """
                }
             }
@@ -188,4 +188,4 @@ pipeline {
     }
 }
 
-// END OF PIPELINE LAB
+// END OF PIPELINE 
