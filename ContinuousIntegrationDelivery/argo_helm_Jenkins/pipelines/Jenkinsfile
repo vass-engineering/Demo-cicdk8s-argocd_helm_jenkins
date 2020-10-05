@@ -5,8 +5,8 @@ pipeline {
   environment {
     registry = "harbor.52.209.128.30.nip.io"
     registryCredential = 'harborid'
-    serverKubernetes = 'https://192.168.66.2:6443'
-    credentialKubernetes = 'jenkinskubernetes'
+    serverKubernetes = 'https://kubernetes.default.svc'
+    credentialKubernetes = 'kubeconfig-eks'
     IMAGETAG="${env.BUILD_NUMBER}"+ "-${params.NAME_APP}" + "-${params.APP_BRANCH}"
     }
 
@@ -23,7 +23,7 @@ pipeline {
     choice(
         name: 'OPTIONDEPLOY',
         choices: "Deploy\nBuildAndDeploy",
-        description: 'Deploy will allow you to select an image already built, BuildAndDeploy will build and deploy this image' )
+        description: 'Deploy will allow you to select an imagen already built, BuildAndDeploy will build and deploy this image' )
   }
 
     agent any
@@ -49,7 +49,7 @@ pipeline {
              		echo 'Starting to compile and test the code'
                 script {
                        sh """
-                        mvn clean package -f tms-spring-boot-template
+                        mvn clean package -f ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/tms-spring-boot-template
                        """
                	}
           }
@@ -63,7 +63,7 @@ pipeline {
           steps {
             		echo 'Starting to build docker image'
             		script {
-                  		 dockerImage  = docker.build("${params.REGISTRY}/" + "${params.REPOSITORY}" + ":$BUILD_NUMBER" + "-${params.NAME_APP}" + "-${params.APP_BRANCH}", "-f tms-spring-boot-template/Dockerfile .")
+                  		 dockerImage  = docker.build("${params.REGISTRY}/" + "${params.REPOSITORY}" + ":$BUILD_NUMBER" + "-${params.NAME_APP}" + "-${params.APP_BRANCH}", "-f ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/tms-spring-boot-template/Dockerfile .")
                 }
           }
         }
@@ -92,8 +92,10 @@ pipeline {
              }
           steps {
                 echo 'Select an image to deploy'
+                withCredentials([usernamePassword(credentialsId: 'harborid', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                 script {
-                       tags = sh(script: "curl -u  xxxx:xxxx --insecure -s  https://${params.REGISTRY}/api/v2.0/projects/library/repositories/tms-lab/artifacts | jq '.[].tags[].name' ", returnStdout: true).trim()
+                       tags = sh(script: "curl -u  ${USERNAME}:${PASSWORD} --insecure -s  https://${params.REGISTRY}/api/v2.0/projects/library/repositories/tms-lab/artifacts | jq '.[].tags[].name' ", returnStdout: true).trim()
+                }
                 }
           }
         }
@@ -126,12 +128,12 @@ pipeline {
         stage('SetImage in VALUES_APP') {
           steps {
                 echo 'SetImage in DEV'
-                withCredentials([sshUserPrivateKey(credentialsId: 'GITHubVassSSH', keyFileVariable: 'SSH_KEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'GitHubFelixCent', keyFileVariable: 'SSH_KEY')]) {
                 sh """
-                    git remote set-url origin git@github.com:felix-centenera/tmslab-githubprivate.git
+                    git remote set-url origin git@github.com:vass-engineering/DemoSolutions.git
                     git checkout ${params.APP_BRANCH}
-                    sed  -i  "s/tag: .*/tag: ${IMAGETAG}/g" helm_templates/helm3-java/valuesdev.yaml
-                    git add helm_templates/helm3-java/valuesdev.yaml
+                    sed  -i  "s/tag: .*/tag: ${IMAGETAG}/g" ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/helm_templates/helm3-java/valuesdev.yaml
+                    git add ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/helm_templates/helm3-java/valuesdev.yaml
                     git commit -m "Deployment  ${env.BUILD_NUMBER}"
                     git push origin master
                     """
@@ -171,7 +173,7 @@ pipeline {
             script {
             withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
             sh """
-               argocd app create "${params.NAME_APP}" --repo  ${params.APP_REPO} --revision  ${params.APP_BRANCH}   --path helm_templates/helm3-java --dest-server https://kubernetes.default.svc --dest-namespace ${params.NAMESPACE} --project default --values ${params.VALUES_APP} --sync-policy automated --auto-prune  --self-heal
+               argocd app create "${params.NAME_APP}" --repo  ${params.APP_REPO} --revision  ${params.APP_BRANCH}   --path ContinuousIntegrationDelivery/argo_helm_Jenkins/tms-spring-boot-template/helm_templates/helm3-java --dest-server   https://kubernetes.default.svc --dest-namespace ${params.NAMESPACE} --project default --values ${params.VALUES_APP} --sync-policy automated --auto-prune  --self-heal
                """
                }
             }
@@ -186,4 +188,4 @@ pipeline {
     }
 }
 
-// END OF PIPELINE
+// END OF PIPELINE LAB
