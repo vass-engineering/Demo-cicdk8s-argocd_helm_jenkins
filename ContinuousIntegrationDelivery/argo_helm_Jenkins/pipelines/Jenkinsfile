@@ -30,6 +30,7 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
         name: 'OPTIONDEPLOY',
         choices: "Deploy\nBuildAndDeploy",
         description: 'Deploy will allow you to select an imagen already built, BuildAndDeploy will build and deploy this image' )
+   credentials(name: 'argocrendentials', description: 'A user to build with', defaultValue: '', credentialType: "Username with password", required: true )
   }
 
     agent any
@@ -179,10 +180,13 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
           steps {
             script {
             //withKubeConfig([credentialsId: credentialKubernetes,  serverUrl: serverKubernetes]) {
+            withCredentials([usernamePassword(credentialsId: 'argocrendentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             sh """
+               argocd login argocd.52.209.128.30.xip.io --username ${USERNAME} --password ${PASSWORD} --insecure
                argocd app create "${params.NAME_APP}" --repo  ${params.APP_REPO} --revision  ${params.APP_BRANCH}   --path ContinuousIntegrationDelivery/argo_helm_Jenkins/helm_templates/helm3-java --dest-server   https://kubernetes.default.svc --dest-namespace ${params.NAMESPACE} --project default --values ${params.VALUES_APP} --sync-policy automated --auto-prune  --self-heal
                """
               //}
+              }
             }
          }
         }
