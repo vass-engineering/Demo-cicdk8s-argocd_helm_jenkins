@@ -12,7 +12,7 @@ configmaps:
 
 image:
   registry: "harbor.54.73.79.60.sslip.io"
-  repository: "library/tms-lab"
+  repository: "demoargocd/demoargocd"
   tag: 8-java-demo-master
   pullPolicy: Always
 
