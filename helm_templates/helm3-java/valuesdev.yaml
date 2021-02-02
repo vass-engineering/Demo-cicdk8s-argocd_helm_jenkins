@@ -11,7 +11,7 @@ configmaps:
   configmappath: /tmp
 
 image:
-  registry: "harbor.52.209.128.30.nip.io"
+  registry: "harbor.54.73.79.60.sslip.io"
   repository: "library/tms-lab"
   tag: 8-java-demo-master
   pullPolicy: Always
