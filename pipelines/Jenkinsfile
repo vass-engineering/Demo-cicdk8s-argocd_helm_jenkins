@@ -27,6 +27,7 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
     string(name: 'APP_BRANCH', defaultValue: 'master')
     string(name: 'VALUES_APP', defaultValue: 'valuesdev.yaml')
     string(name: 'NAMESPACE', defaultValue: 'demoargocd')
+    string(name: 'CLUSTER_URL_DESTINATION', defaultValue: 'https://kubernetes.default.svc')
     string(name: 'REGISTRY', defaultValue: 'harbor.54.73.79.60.sslip.io', description: 'Registry image')
     string(name: 'REPOSITORY', defaultValue: 'demoargocd/demoargocd', description: 'Repository image')
     choice(
