@@ -79,16 +79,28 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
           }
         }
 
-
-        // BUILD.3: Push images to registry
-        stage('Push Image to registry') {
+        // BUILD.3.1: Docker login
+        stage('Docker login') {
         when {
           		expression { OPTIONDEPLOY == 'BuildAndDeploy' }
              }
           steps{
                withCredentials([usernamePassword(credentialsId: 'argocrendentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')])
                script {
+               sh """
                       docker login https://harbordemo.54.73.79.60.nip.io -u ${USERNAME} -p {PASSWORD}
+               """
+               }
+          }
+        }
+
+        // BUILD.3.2: Push images to registry
+        stage('Push Image to registry') {
+        when {
+          		expression { OPTIONDEPLOY == 'BuildAndDeploy' }
+             }
+          steps{
+               script {
                       docker.withRegistry( 'https://harbordemo.54.73.79.60.nip.io', registryCredential ) {
                       dockerImage.push()
                       }
