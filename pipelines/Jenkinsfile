@@ -85,12 +85,13 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
           		expression { OPTIONDEPLOY == 'BuildAndDeploy' }
              }
           steps{
-               withCredentials([usernamePassword(credentialsId: 'argocrendentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')])
+               withCredentials([usernamePassword(credentialsId: 'harborid', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                script {
                sh """
                       docker login https://harbordemo.54.73.79.60.nip.io -u ${USERNAME} -p {PASSWORD}
                """
                }
+                }
           }
         }
 
