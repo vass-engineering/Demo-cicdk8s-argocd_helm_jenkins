@@ -11,7 +11,7 @@ configmaps:
   configmappath: /tmp
 
 image:
-  registry: "harbor.54.73.79.60.sslip.io"
+  registry: "harbordemo.54.73.79.60.nip.io"
   repository: "demoargocd/demoargocd"
   tag: 14-java-demo-master
   pullPolicy: Always
