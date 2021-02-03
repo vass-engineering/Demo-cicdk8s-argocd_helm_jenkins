@@ -88,7 +88,7 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
           steps{
                withCredentials([usernamePassword(credentialsId: 'argocrendentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')])
                script {
-                      docker login https://${params.REGISTRY} -u ${USERNAME} -p {PASSWORD}
+                      docker login https://harbordemo.54.73.79.60.nip.io -u ${USERNAME} -p {PASSWORD}
                       docker.withRegistry( 'https://harbordemo.54.73.79.60.nip.io', registryCredential ) {
                       dockerImage.push()
                       }
