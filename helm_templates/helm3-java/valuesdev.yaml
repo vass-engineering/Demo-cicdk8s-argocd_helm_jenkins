@@ -13,7 +13,7 @@ configmaps:
 image:
   registry: "harbor.54.73.79.60.sslip.io"
   repository: "demoargocd/demoargocd"
-  tag: 13-java-demo-master
+  tag: 14-java-demo-master
   pullPolicy: Always
 
 
