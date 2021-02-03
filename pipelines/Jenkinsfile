@@ -12,7 +12,7 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
     serverKubernetes = 'https://52B5D98096CE6CC69C293741E709FEC4.sk1.eu-west-1.eks.amazonaws.com'
     credentialKubernetes = 'kubeconfig-eks'
 
-    registry = "harbor.54.73.79.60.sslip.io"
+    registry = "harbordemo.54.73.79.60.nip.io"
     registryCredential = 'harborid'
     IMAGETAG="${env.BUILD_NUMBER}"+ "-${params.APP_NAME}" + "-${params.APP_BRANCH}"
     }
@@ -28,7 +28,7 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
     string(name: 'VALUES_APP', defaultValue: 'valuesdev.yaml')
     string(name: 'NAMESPACE', defaultValue: 'demoargocd')
     string(name: 'CLUSTER_URL_DESTINATION', defaultValue: 'https://kubernetes.default.svc')
-    string(name: 'REGISTRY', defaultValue: 'harbor.54.73.79.60.sslip.io', description: 'Registry image')
+    string(name: 'REGISTRY', defaultValue: 'harbordemo.54.73.79.60.nip.io', description: 'Registry image')
     string(name: 'REPOSITORY', defaultValue: 'demoargocd/demoargocd', description: 'Repository image')
     choice(
         name: 'OPTIONDEPLOY',
@@ -86,8 +86,10 @@ withKubeConfig([credentialsId: 'kubeconfig-eks' ,  serverUrl: 'https://52b5d9809
           		expression { OPTIONDEPLOY == 'BuildAndDeploy' }
              }
           steps{
+               withCredentials([usernamePassword(credentialsId: 'argocrendentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')])
                script {
-                      docker.withRegistry( 'https://harbor.54.73.79.60.sslip.io', registryCredential ) {
+                      docker login https://${params.REGISTRY} -u ${USERNAME} -p {PASSWORD}
+                      docker.withRegistry( 'https://harbordemo.54.73.79.60.nip.io', registryCredential ) {
                       dockerImage.push()
                       }
                }
